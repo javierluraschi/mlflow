@@ -137,12 +137,13 @@ def _wait_for(submitted_run_obj):
     # we're interrupted before we reach the try block below
     try:
         active_run = tracking._get_existing_run(run_id) if run_id is not None else None
-        if submitted_run_obj.wait():
+        status = submitted_run_obj.wait()
+        if status == 0:
             eprint("=== Run (ID '%s') succeeded ===" % run_id)
             _maybe_set_run_terminated(active_run, "FINISHED")
         else:
             _maybe_set_run_terminated(active_run, "FAILED")
-            raise ExecutionException("=== Run (ID '%s') failed ===" % run_id)
+            raise ExecutionException("=== Run (ID '%s') failed (Status '%d') ===" % (run_id % status))
     except KeyboardInterrupt:
         eprint("=== Run (ID '%s') === interrupted, cancelling run ===" % run_id)
         submitted_run_obj.cancel()
